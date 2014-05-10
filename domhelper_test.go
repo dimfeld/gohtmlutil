@@ -133,3 +133,29 @@ func BenchmarkFind(b *testing.B) {
 		Find(doc, "html/body/div/div/ul/li#SecondList")
 	}
 }
+
+func ExampleFind() {
+	document := `<html><body><div>
+		<span>Some text</span>
+		<span name="#abc">ABC</span>
+		<span class="fancytext">Fancy Text</span>
+		</div>
+		</body>
+		</html>`
+	buf := bytes.NewBufferString(document)
+	root, err := html.Parse(buf)
+	if err != nil {
+		fmt.Println("Error parsing document:", err)
+		return
+	}
+
+	node, _ := Find(root, "html/body/#abc")
+	fmt.Println("Text for #abc is", node.FirstChild)
+
+	node, _ = Find(root, "html/body/span.fancytext")
+	fmt.Println("Text for span.fancytext is", node.FirstChild)
+
+	// Output:
+	// Text for #abc is ABC
+	// Text for span.fancytext is Fancy Test
+}

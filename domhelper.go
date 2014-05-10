@@ -1,3 +1,4 @@
+// gohtmlutil provides helper functions for use with the package `code.google.com/p/go.net/html`.
 package gohtmlutil
 
 import (
