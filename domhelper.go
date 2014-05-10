@@ -3,6 +3,7 @@ package gohtmlutil
 
 import (
 	"code.google.com/p/go.net/html"
+	"strconv"
 	"strings"
 )
 
@@ -10,6 +11,8 @@ import (
 // The input is a slash-separated list of elements,
 // #names, and .classes to search for. Elements and classes
 // may be combined, such as div#contentName or ul.listClass.
+// A token may also be prefixed with a count N and asterisk (e.g. 2*span),
+// which will find the Nth match.
 func Find(root *html.Node, path string) (node *html.Node, ok bool) {
 	tokens := strings.Split(path, "/")
 	node, ok = findHelper(tokens, root)
@@ -17,9 +20,20 @@ func Find(root *html.Node, path string) (node *html.Node, ok bool) {
 }
 
 func findHelper(tokens []string, parent *html.Node) (*html.Node, bool) {
+	index := -1
 	element := tokens[0]
 	class := ""
 	name := ""
+
+	if s := strings.Split(element, "*"); len(s) == 2 {
+		var err error
+		index, err = strconv.Atoi(s[0])
+		if err != nil {
+			// Better error handling here?
+			index = -1
+		}
+		element = s[1]
+	}
 
 	// Get the class, if given.
 	if s := strings.Split(element, "."); len(s) == 2 {
@@ -36,6 +50,7 @@ func findHelper(tokens []string, parent *html.Node) (*html.Node, bool) {
 		name = s[1]
 	}
 
+	matchElementCount := 0
 	for c := parent.FirstChild; c != nil; c = c.NextSibling {
 		if c.Type != html.ElementNode {
 			continue
@@ -74,6 +89,12 @@ func findHelper(tokens []string, parent *html.Node) (*html.Node, bool) {
 			}
 
 			if nameMatch && classMatch {
+				matchElementCount++
+				if index != -1 && index != matchElementCount {
+					// We're looking for the nth element, and haven't reached n yet.
+					continue
+				}
+
 				if len(tokens) == 1 {
 					// This is the final token the user is looking for.
 					return c, true

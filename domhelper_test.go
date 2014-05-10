@@ -3,6 +3,7 @@ package gohtmlutil
 import (
 	"bytes"
 	"code.google.com/p/go.net/html"
+	"fmt"
 	"testing"
 )
 
@@ -88,7 +89,6 @@ func TestFind(t *testing.T) {
 	}
 
 	testNode("html/body/h1", "Header")
-	// Test cache by reading again.
 	testNode("html/body/h1", "Header")
 	testNode("html/body/#header", "Header")
 	testNode("html/body/h1#header", "Header")
@@ -98,6 +98,7 @@ func TestFind(t *testing.T) {
 	testNode("html/body/div/div", "AnonymousDiv")
 	testNode("html/body/div/div#abc", "AbcName")
 	testNode("html/body/div/div.abc", "AbcClass")
+	testNode("html/body/div/2*div.abc", "AbcNameClass")
 	testNode("html/body/div/div.abc#abc", "AbcNameClass")
 	testNode("html/body/div/div#abc.abc", "AbcNameClass")
 	testNode("html/body/div/div/ul/li", "123")
@@ -106,6 +107,15 @@ func TestFind(t *testing.T) {
 	testNode("html/body/div/div/ul/.red", "GrayRedClass")
 	testNode("html/body/div/div/ul/li#SecondList", "SecondList")
 	testNode("html/body/div/div/ul/#SecondList", "SecondList")
+	testNode("html/body/div/2*div", "AbcName")
+	testNode("html/body/1*div/2*div", "AbcName")
+	testNode("html/body/div/5*div/ul/li", "123")
+	testNode("html/body/div/1*div", "AnonymousDiv")
+	testNode("html/body/div/div/1*ul/.gray", "GrayRedClass")
+	testNodeMiss("html/body/div/4*div/ul/li")
+	testNodeMiss("html/body/2*div")
+	testNodeMiss("html/body/0*div")
+	testNodeMiss("html/body/div/div/2*ul/.gray")
 	testNodeMiss("html/body/h1#abc")
 	testNodeMiss("h1")
 	testNodeMiss("html/body/div/div/ul/li#SecondList.SecondList")
@@ -137,7 +147,7 @@ func BenchmarkFind(b *testing.B) {
 func ExampleFind() {
 	document := `<html><body><div>
 		<span>Some text</span>
-		<span name="#abc">ABC</span>
+		<span name="abc">ABC</span>
 		<span class="fancytext">Fancy Text</span>
 		</div>
 		</body>
@@ -149,13 +159,17 @@ func ExampleFind() {
 		return
 	}
 
-	node, _ := Find(root, "html/body/#abc")
-	fmt.Println("Text for #abc is", node.FirstChild)
+	node, _ := Find(root, "html/body/div/#abc")
+	fmt.Println("Text for #abc is", node.FirstChild.Data)
 
-	node, _ = Find(root, "html/body/span.fancytext")
-	fmt.Println("Text for span.fancytext is", node.FirstChild)
+	node, _ = Find(root, "html/body/div/span.fancytext")
+	fmt.Println("Text for span.fancytext is", node.FirstChild.Data)
+
+	node, _ = Find(root, "html/body/div/2*span")
+	fmt.Println("Text for 2nd span element is", node.FirstChild.Data)
 
 	// Output:
 	// Text for #abc is ABC
-	// Text for span.fancytext is Fancy Test
+	// Text for span.fancytext is Fancy Text
+	// Text for 2nd span element is ABC
 }
