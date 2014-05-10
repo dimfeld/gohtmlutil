@@ -168,8 +168,13 @@ func ExampleFind() {
 	node, _ = Find(root, "html/body/div/2*span")
 	fmt.Println("Text for 2nd span element is", node.FirstChild.Data)
 
+	divNode, _ := Find(root, "html/body/div")
+	node, _ = Find(divNode, "3*span")
+	fmt.Println("Text for 3rd span element is", node.FirstChild.Data)
+
 	// Output:
 	// Text for #abc is ABC
 	// Text for span.fancytext is Fancy Text
 	// Text for 2nd span element is ABC
+	// Text for 3rd span element is Fancy Text
 }
