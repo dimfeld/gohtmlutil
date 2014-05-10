@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"code.google.com/p/go.net/html"
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -53,8 +54,7 @@ func pathToRoot(node *html.Node) string {
 }
 
 func TestFind(t *testing.T) {
-	buf := bytes.NewBufferString(document)
-	doc, err := html.Parse(buf)
+	doc, err := html.Parse(strings.NewReader(document))
 	if err != nil {
 		t.Error("Failed to parse data with error", err)
 		t.FailNow()
@@ -125,7 +125,7 @@ func TestFind(t *testing.T) {
 	doc, _ = Find(doc, "html/body/div")
 	testNode("div/ul/li", "123")
 
-	buf = &bytes.Buffer{}
+	buf := &bytes.Buffer{}
 	html.Render(buf, doc)
 	t.Log(string(buf.Bytes()))
 }
@@ -152,8 +152,7 @@ func ExampleFind() {
 		</div>
 		</body>
 		</html>`
-	buf := bytes.NewBufferString(document)
-	root, err := html.Parse(buf)
+	root, err := html.Parse(strings.NewReader(document))
 	if err != nil {
 		fmt.Println("Error parsing document:", err)
 		return
