@@ -1,46 +1,21 @@
-package html
+package gohtmlutil
 
 import (
-	ghtml "code.google.com/p/go.net/html"
-	"os"
+	"code.google.com/p/go.net/html"
 	"strings"
 )
-
-type HTMLDocument struct {
-	Root       *ghtml.Node
-	cachedPath map[string]*ghtml.Node
-}
 
 // Find a particular node in the tree.
 // The input is a slash-separated list of elements,
 // #names, and .classes to search for. Elements and classes
 // may be combined, such as div#contentName or ul.listClass.
-func (d HTMLDocument) Find(path string) (node *gthml.Node, ok bool) {
+func Find(root *html.Node, path string) (node *html.Node, ok bool) {
 	tokens := strings.Split(path, "/")
-
-	// First see if this is a cached path, to speed up the search.
-	// Start with the longest path and go backward.
-	for i := len(tokens); i > 0; i-- {
-		tryCacheTokens := tokens[0:i]
-		tryString := strings.Join(tryCacheTokens, "/")
-		if node, ok = d.cachedPath[tryString]; ok {
-			tokens = tokens[i:len(tokens)]
-			break
-		}
-	}
-
-	if !ok {
-		node = d.Root
-	}
-
-	node, ok = findHelper(tokens, node)
-	if ok {
-		d.cachedPath[path] = node
-	}
+	node, ok = findHelper(tokens, root)
 	return
 }
 
-func findHelper(tokens []string, parent *ghtml.Node) (*ghtml.Node, bool) {
+func findHelper(tokens []string, parent *html.Node) (*html.Node, bool) {
 	element := tokens[0]
 	class := ""
 	name := ""
@@ -61,9 +36,10 @@ func findHelper(tokens []string, parent *ghtml.Node) (*ghtml.Node, bool) {
 	}
 
 	for c := parent.FirstChild; c != nil; c = c.NextSibling {
-		if c.Type != ghtml.ElementNode {
+		if c.Type != html.ElementNode {
 			continue
 		}
+
 		if c.Data == element || element == "" {
 			nameMatch := name == ""
 			classMatch := class == ""
@@ -77,19 +53,21 @@ func findHelper(tokens []string, parent *ghtml.Node) (*ghtml.Node, bool) {
 					if !nameMatch && attr.Key == "name" {
 						if attr.Val == name {
 							nameMatch = true
+						} else {
+							break
 						}
-						break
 					}
 
 					if !classMatch && attr.Key == "class" {
-						classes = strings.Split(attr.Val, " ")
+						classes := strings.Split(attr.Val, " ")
 						for _, oneClass := range classes {
 							if oneClass == class {
 								classMatch = true
-								break
 							}
 						}
-						break
+						if !classMatch {
+							break
+						}
 					}
 				}
 			}
@@ -112,19 +90,4 @@ func findHelper(tokens []string, parent *ghtml.Node) (*ghtml.Node, bool) {
 
 	// If we get down to here, then nothing was found
 	return nil, false
-}
-
-func LoadFile(filename string) (HTMLDocument, error) {
-	f, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	return Parse(f)
-}
-
-func Parse(reader io.Reader) (HTMLDocument, error) {
-	root, err := gthml.Parse(reader)
-	return HTMLDocument{Root: root, cachedPath: make(map[string]*ghtml.Node)}, err
 }
