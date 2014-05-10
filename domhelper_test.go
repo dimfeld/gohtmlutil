@@ -131,8 +131,7 @@ func TestFind(t *testing.T) {
 }
 
 func BenchmarkFind(b *testing.B) {
-	buf := bytes.NewBufferString(document)
-	doc, err := html.Parse(buf)
+	doc, err := html.Parse(strings.NewReader(document))
 	if err != nil {
 		b.Error("Failed to parse data with error", err)
 		b.FailNow()
@@ -141,6 +140,34 @@ func BenchmarkFind(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Find(doc, "html/body/div/div/ul/li#SecondList")
+	}
+}
+
+func BenchmarkSimpleFind(b *testing.B) {
+	doc, err := html.Parse(strings.NewReader(document))
+	if err != nil {
+		b.Error("Failed to parse data with error", err)
+		b.FailNow()
+	}
+
+	doc, _ = Find(doc, "html/body/div")
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Find(doc, "5*div")
+	}
+}
+
+func BenchmarkMiss(b *testing.B) {
+	doc, err := html.Parse(strings.NewReader(document))
+	if err != nil {
+		b.Error("Failed to parse data with error", err)
+		b.FailNow()
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Find(doc, "html/body/div/div/ul/4*li")
 	}
 }
 
