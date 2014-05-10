@@ -1,4 +1,4 @@
-gohtmlutil  [![GoDoc](http://godoc.org/github.com/dimfled/gohtmlutil?status.png)](http://godoc.org/github.com/dimfeld/gohtmlutil)
+gohtmlutil  [![GoDoc](http://godoc.org/github.com/dimfeld/gohtmlutil?status.png)](http://godoc.org/github.com/dimfeld/gohtmlutil)
 ====
 
 Utilities for HTML Parsing
