@@ -179,11 +179,7 @@ func ExampleFind() {
 		</div>
 		</body>
 		</html>`
-	root, err := html.Parse(strings.NewReader(document))
-	if err != nil {
-		fmt.Println("Error parsing document:", err)
-		return
-	}
+	root, _ := html.Parse(strings.NewReader(document))
 
 	node, _ := Find(root, "html/body/div/#abc")
 	fmt.Println("Text for #abc is", node.FirstChild.Data)
